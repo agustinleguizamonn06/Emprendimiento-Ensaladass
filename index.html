@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Ensaladas - Pro</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4CAF50;
+            --primary-dark: #388E3C;
+            --primary-light: #C8E6C9;
+            --secondary: #FF9800;
+            --bg-light: #f0f2f5;
+            --text-dark: #2c3e50;
+            --text-light: #666666;
+            --white: #ffffff;
+            --danger: #e74c3c;
+            --sidebar-width: 260px;
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --shadow-hover: 0 15px 35px rgba(0,0,0,0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+            background-size: 20px 20px;
+            display: flex;
+            min-height: 100vh;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--white);
+            box-shadow: 5px 0 20px rgba(0,0,0,0.05);
+            position: fixed;
+            height: 100%;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .brand {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 50px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            letter-spacing: -0.5px;
+        }
+
+        .brand i {
+            font-size: 1.8rem;
+            background: var(--primary-light);
+            padding: 10px;
+            border-radius: 12px;
+            color: var(--primary-dark);
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            width: 100%;
+            padding: 16px 20px;
+            text-align: left;
+            cursor: pointer;
+            color: var(--text-light);
+            border-radius: 15px;
+            margin-bottom: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 1rem;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-btn i {
+            width: 20px;
+            text-align: center;
+            transition: transform 0.3s;
+            color: var(--text-light);
+        }
+
+        .nav-btn:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-dark);
+            transform: translateX(5px);
+        }
+
+        .nav-btn:hover i {
+            transform: scale(1.2);
+            color: var(--primary-dark);
+        }
+
+        .nav-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white) !important;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            transform: translateX(5px);
+        }
+
+        .nav-btn.active i {
+            color: var(--white) !important;
+        }
+
+        .nav-btn span {
+            color: inherit;
+        }
+
+        /* --- MAIN CONTENT --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 40px;
+            width: 100%;
+            transition: margin-left 0.3s;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            margin-bottom: 30px;
+            color: var(--text-dark);
+            font-weight: 700;
+            position: relative;
+            display: inline-block;
+            padding-bottom: 10px;
+        }
+
+        h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--primary);
+            border-radius: 2px;
+        }
+
+        /* --- CARDS & DASHBOARD --- */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(0,0,0,0.02);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: var(--primary);
+            transform: scaleX(0);
+            transition: transform 0.4s ease;
+            transform-origin: left;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .card h3 {
+            font-size: 0.95rem;
+            color: #888;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .card .value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+            transition: color 0.3s;
+        }
+
+        /* --- FORMS --- */
+        .form-container {
+            background: var(--white);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #eee;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #fafafa;
+            color: #333;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+            background: var(--white);
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
+            transform: translateY(-2px);
+        }
+
+        input[readonly] {
+            background: #f5f5f5;
+            cursor: not-allowed;
+        }
+
+        button.btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        button.btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.2);
+            transform: scaleX(0);
+            transform-origin: right;
+            transition: transform 0.4s ease;
+            z-index: -1;
+        }
+
+        button.btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        button.btn-primary:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
+
+        button.btn-primary:active {
+            transform: translateY(1px);
+        }
+
+        button.btn-danger {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(231, 76, 60, 0.3);
+        }
+
+        button.btn-danger:hover {
+            background-color: #c0392b;
+            transform: scale(1.05);
+        }
+
+        button.btn-reset {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 20px 40px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 700;
+            width: 100%;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(231, 76, 60, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        button.btn-reset:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(231, 76, 60, 0.5);
+        }
+
+        /* --- TABLES --- */
+        .table-responsive {
+            overflow-x: auto;
+            background: var(--white);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: var(--shadow);
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+        }
+
+        th {
+            background-color: #f8f9fa;
+            color: #777;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            padding: 15px 20px;
+            border: none;
+        }
+
+        th:first-child { border-top-left-radius: 10px; }
+        th:last-child { border-top-right-radius: 10px; }
+
+        td {
+            background: var(--white);
+            padding: 20px;
+            vertical-align: middle;
+            border-top: 1px solid #f0f0f0;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.2s;
+        }
+
+        tr td:first-child { border-top-left-radius: 10px; border-bottom-left-radius: 10px; border-left: 1px solid #f0f0f0; }
+        tr td:last-child { border-top-right-radius: 10px; border-bottom-right-radius: 10px; border-right: 1px solid #f0f0f0; }
+
+        tr:hover td {
+            background: #fcfcfc;
+            transform: scale(1.01);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            z-index: 10;
+            position: relative;
+        }
+
+        /* --- HELPERS & TOAST --- */
+        .row { display: flex; gap: 20px; align-items: flex-end; flex-wrap: wrap; }
+        .col { flex: 1; min-width: 200px; }
+        
+        .badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-info { background: #d1ecf1; color: #0c5460; }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--white);
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            min-width: 300px;
+            border-left: 5px solid var(--primary);
+            animation: slideInRight 0.5s ease, fadeOut 0.5s 2.5s forwards;
+            opacity: 0;
+        }
+
+        .toast.success { border-left-color: var(--primary); }
+        .toast.error { border-left-color: var(--danger); }
+        .toast.warning { border-left-color: var(--secondary); }
+        .toast.info { border-left-color: #17a2b8; }
+
+        .toast i { font-size: 1.2rem; }
+        .toast.success i { color: var(--primary); }
+        .toast.error i { color: var(--danger); }
+        .toast.warning i { color: var(--secondary); }
+        .toast.info i { color: #17a2b8; }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateY(20px); pointer-events: none; }
+        }
+
+        /* Info Box */
+        .info-box {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 5px solid #2196F3;
+        }
+
+        .info-box h4 {
+            color: #1565C0;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-box p {
+            color: #424242;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        /* Packaging Section */
+        .packaging-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .packaging-card {
+            background: var(--white);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .packaging-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .packaging-card h4 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .cost-highlight {
+            background: var(--primary-light);
+            color: var(--primary-dark);
+            padding: 10px 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .cost-highlight .label {
+            font-size: 0.8rem;
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .cost-highlight .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-dark);
+        }
+
+        /* Reset Section */
+        .reset-section {
+            background: linear-gradient(135deg, #ffebee, #ffcdd2);
+            border: 2px solid var(--danger);
+            margin-top: 40px;
+        }
+
+        .reset-section h3 {
+            color: var(--danger);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .reset-section p {
+            color: #c62828;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .warning-icon {
+            font-size: 3rem;
+            color: var(--danger);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 80px; padding: 20px 10px; }
+            .sidebar .brand span, .nav-btn span { display: none; }
+            .sidebar .brand { justify-content: center; margin-bottom: 30px; }
+            .nav-btn { justify-content: center; padding: 15px; }
+            .main-content { margin-left: 80px; padding: 20px; }
+            .row { flex-direction: column; }
+            .dashboard-grid { grid-template-columns: 1fr; }
+            .packaging-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar">
+        <div class="brand">
+            <i class="fas fa-leaf"></i>
+            <span>Vida Fresca</span>
+        </div>
+        <button class="nav-btn active" onclick="showSection('dashboard')">
+            <i class="fas fa-chart-pie"></i> <span>Resumen</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('inventario')">
+            <i class="fas fa-carrot"></i> <span>Inventario</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('envases')">
+            <i class="fas fa-box"></i> <span>Envases</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('recetas')">
+            <i class="fas fa-book-open"></i> <span>Recetas</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('ventas')">
+            <i class="fas fa-calendar-check"></i> <span>Ventas</span>
+        </button>
+        <button class="nav-btn" onclick="showSection('finanzas')">
+            <i class="fas fa-wallet"></i> <span>Finanzas</span>
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        
+        <!-- SECCIÓN 1: DASHBOARD -->
+        <section id="dashboard" class="section active">
+            <h2>Panel de Control</h2>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Ventas Totales</h3>
+                    <div class="value" id="dash-ventas">$0</div>
+                </div>
+                <div class="card">
+                    <h3>Costo Mercadería</h3>
+                    <div class="value" id="dash-gastos" style="color: var(--danger);">$0</div>
+                </div>
+                <div class="card">
+                    <h3>Ganancia Neta</h3>
+                    <div class="value" id="dash-ganancia">$0</div>
+                </div>
+                <div class="card">
+                    <h3>Alertas Stock</h3>
+                    <div class="value" id="dash-alertas" style="color: var(--secondary);">0</div>
+                </div>
+            </div>
+            
+            <div class="form-container">
+                <h3><i class="fas fa-history"></i> Últimas Ventas</h3>
+                <div class="table-responsive">
+                    <table id="tabla-ultimas-ventas">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Producto</th>
+                                <th>Cant.</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: INVENTARIO -->
+        <section id="inventario" class="section">
+            <h2>Gestión de Inventario</h2>
+            
+            <div class="info-box">
+                <h4><i class="fas fa-info-circle"></i> ¿Cómo cargar ingredientes?</h4>
+                <p>Seleccioná la unidad de medida (kg, gramos, unidades), ingresá la cantidad que compraste y el precio por unidad. El sistema calculará automáticamente el gasto total y el costo unitario.</p>
+            </div>
+
+            <div class="row">
+                <div class="col">
+                    <div class="form-container">
+                        <h3><i class="fas fa-plus-circle"></i> Nueva Compra</h3>
+                        <form id="form-compra">
+                            <div class="form-group">
+                                <label>Nombre del Ingrediente</label>
+                                <input type="text" id="ingrediente-nombre" placeholder="Ej: Lechuga, Tomate..." required>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col form-group">
+                                    <label>Unidad de Medida</label>
+                                    <select id="ingrediente-unidad">
+                                        <option value="kg">Kilogramos (kg)</option>
+                                        <option value="gr">Gramos (gr)</option>
+                                        <option value="unid">Unidades (unid)</option>
+                                        <option value="lt">Litros (lt)</option>
+                                    </select>
+                                </div>
+                                <div class="col form-group">
+                                    <label>Cantidad Comprada</label>
+                                    <input type="number" step="0.01" id="ingrediente-cantidad" placeholder="Ej: 5" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Precio por Unidad (<span id="label-unidad-precio">kg</span>)</label>
+                                <input type="number" step="0.01" id="ingrediente-precio-unitario" placeholder="Ej: 150" required>
+                                <small style="color: #888; font-size: 0.8rem; display:block; margin-top:5px;">El sistema calculará el gasto total automáticamente.</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label style="color: var(--primary);">Gasto Total Estimado</label>
+                                <input type="text" id="ingrediente-gasto-total" readonly style="background: #f0f9f0; font-weight: bold; border-color: var(--primary-light);">
+                            </div>
+
+                            <button type="submit" class="btn-primary">Agregar al Stock</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-container">
+                        <h3><i class="fas fa-trash-alt"></i> Registrar Pérdida</h3>
+                        <form id="form-merma">
+                            <div class="form-group">
+                                <label>Seleccionar Ingrediente</label>
+                                <select id="merma-select" required></select>
+                            </div>
+                            <div class="form-group">
+                                <label>Cantidad Perdida</label>
+                                <input type="number" step="0.01" id="merma-cantidad" required>
+                            </div>
+                            <button type="submit" class="btn-primary" style="background: linear-gradient(135deg, var(--danger), #c0392b);">Descontar Stock</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <h3>Stock Actual</h3>
+                <table id="tabla-inventario">
+                    <thead>
+                        <tr>
+                            <th>Ingrediente</th>
+                            <th>Stock</th>
+                            <th>Costo Unit.</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: ENVASES -->
+        <section id="envases" class="section">
+            <h2>Gestión de Envases</h2>
+            
+            <div class="info-box">
+                <h4><i class="fas fa-box-open"></i> Costos de Empaque</h4>
+                <p>Acá registrás las bolsas y stickers que comprás. El sistema calcula automáticamente el costo por unidad y lo suma a cada receta. ¡Así tu precio final incluye TODO!</p>
+            </div>
+
+            <div class="packaging-grid">
+                <!-- Bolsas -->
+                <div class="packaging-card">
+                    <h4><i class="fas fa-shopping-bag"></i> Bolsas</h4>
+                    <form id="form-bolsas">
+                        <div class="form-group">
+                            <label>Cantidad de Bolsas Compradas</label>
+                            <input type="number" id="bolsas-cantidad" placeholder="Ej: 100" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio Total del Paquete ($)</label>
+                            <input type="number" step="0.01" id="bolsas-precio-total" placeholder="Ej: 2500" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Actualizar Bolsas</button>
+                    </form>
+                    <div class="cost-highlight">
+                        <span class="label">Costo por Bolsa</span>
+                        <span class="value" id="bolsas-costo-unitario">$0.00</span>
+                    </div>
+                    <div style="margin-top: 10px; text-align: center; color: #666;">
+                        <small>Stock: <strong id="bolsas-stock">0</strong> unidades</small>
+                    </div>
+                </div>
+
+                <!-- Stickers -->
+                <div class="packaging-card">
+                    <h4><i class="fas fa-sticky-note"></i> Stickers Personalizados</h4>
+                    <form id="form-stickers">
+                        <div class="form-group">
+                            <label>Cantidad de Stickers Comprados</label>
+                            <input type="number" id="stickers-cantidad" placeholder="Ej: 500" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio Total del Paquete ($)</label>
+                            <input type="number" step="0.01" id="stickers-precio-total" placeholder="Ej: 5000" required>
+                        </div>
+                        <button type="submit" class="btn-primary">Actualizar Stickers</button>
+                    </form>
+                    <div class="cost-highlight">
+                        <span class="label">Costo por Sticker</span>
+                        <span class="value" id="stickers-costo-unitario">$0.00</span>
+                    </div>
+                    <div style="margin-top: 10px; text-align: center; color: #666;">
+                        <small>Stock: <strong id="stickers-stock">0</strong> unidades</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-container">
+                <h3><i class="fas fa-calculator"></i> Costo Total de Empaque por Ensalada</h3>
+                <div class="row">
+                    <div class="col">
+                        <div class="cost-highlight" style="background: linear-gradient(135deg, var(--primary-light), #a5d6a7);">
+                            <span class="label">Costo Bolsa + Sticker</span>
+                            <span class="value" id="empaque-total-unitario">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+                <p style="margin-top: 15px; color: #666; font-size: 0.9rem;">
+                    <i class="fas fa-info-circle"></i> Este costo se suma automáticamente a cada receta que crees.
+                </p>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 4: RECETAS -->
+        <section id="recetas" class="section">
+            <h2>Calculadora de Recetas</h2>
+            
+            <div class="info-box" style="background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-left-color: var(--secondary);">
+                <h4 style="color: #e65100;"><i class="fas fa-lightbulb"></i> Tip Profesional</h4>
+                <p>El sistema ya incluye automáticamente el costo de bolsa + sticker en cada receta. Solo preocupate por los ingredientes, ¡del resto nos encargamos nosotros!</p>
+            </div>
+
+            <div class="form-container">
+                <form id="form-receta">
+                    <div class="form-group">
+                        <label>Nombre de la Ensalada</label>
+                        <input type="text" id="receta-nombre" placeholder="Ej: Ensalada César" required>
+                    </div>
+                    
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px dashed #ccc;">
+                        <h4 style="margin-bottom: 15px; color: var(--primary);"><i class="fas fa-flask"></i> Agregar Ingredientes</h4>
+                        <div class="row">
+                            <select id="receta-ingrediente" class="col" required></select>
+                            <input type="number" step="0.01" placeholder="Cantidad" id="receta-cantidad" class="col" required>
+                            <select id="receta-unidad-uso" class="col" style="flex: 0.5;">
+                                <option value="kg">kg</option>
+                                <option value="gr">gr</option>
+                                <option value="unid">unid</option>
+                            </select>
+                            <button type="button" onclick="agregarIngredienteReceta()" style="width: 50px; background: var(--primary); color: white; border:none; border-radius:10px; cursor:pointer; font-size: 1.2rem;"><i class="fas fa-plus"></i></button>
+                        </div>
+                        <ul id="lista-ingredientes-temp" style="margin-top: 15px; list-style: none;"></ul>
+                    </div>
+
+                    <div class="row">
+                        <div class="col form-group">
+                            <label>Margen de Ganancia (%)</label>
+                            <input type="number" id="receta-margen" value="40" onchange="calcularPrecioVenta()">
+                        </div>
+                        <div class="col form-group">
+                            <label>Costo Ingredientes</label>
+                            <input type="text" id="receta-costo" readonly style="background: #eee;">
+                        </div>
+                        <div class="col form-group">
+                            <label>+ Costo Empaque</label>
+                            <input type="text" id="receta-costo-empaque" readonly style="background: #fff3e0; border-color: var(--secondary);">
+                        </div>
+                        <div class="col form-group">
+                            <label>Precio Venta Sugerido</label>
+                            <input type="text" id="receta-precio-venta" readonly style="background: #d4edda; font-weight: bold; color: var(--primary-dark); border-color: var(--primary);">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Guardar Receta</button>
+                </form>
+            </div>
+
+            <div class="table-responsive">
+                <h3>Recetas Guardadas</h3>
+                <table id="tabla-recetas">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Ingredientes</th>
+                            <th>Costo Total</th>
+                            <th>Precio Venta</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 5: VENTAS -->
+        <section id="ventas" class="section">
+            <h2>Registro de Ventas</h2>
+            <div class="form-container">
+                <div class="row">
+                    <div class="col">
+                        <label>Fecha</label>
+                        <input type="date" id="venta-fecha">
+                    </div>
+                    <div class="col">
+                        <label>Ensalada</label>
+                        <select id="venta-receta-select"></select>
+                    </div>
+                    <div class="col">
+                        <label>Cantidad</label>
+                        <input type="number" id="venta-cantidad" value="1" min="1">
+                    </div>
+                </div>
+                <br>
+                <button onclick="registrarVenta()" class="btn-primary"><i class="fas fa-check-circle"></i> Registrar Venta</button>
+            </div>
+
+            <div class="table-responsive">
+                <h3>Historial de Ventas</h3>
+                <table id="tabla-ventas-historial">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Producto</th>
+                            <th>Cant.</th>
+                            <th>Ingreso</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 6: FINANZAS -->
+        <section id="finanzas" class="section">
+            <h2>Reporte Financiero</h2>
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Ingresos Totales</h3>
+                    <div class="value" id="fin-ingresos">$0</div>
+                </div>
+                <div class="card">
+                    <h3>Egresos (Costo Ventas)</h3>
+                    <div class="value" id="fin-egresos">$0</div>
+                </div>
+                <div class="card">
+                    <h3>Saldo Final</h3>
+                    <div class="value" id="fin-saldo">$0</div>
+                </div>
+            </div>
+            <div class="form-container">
+                <h3><i class="fas fa-chart-line"></i> Resumen Detallado</h3>
+                <table style="margin-top: 20px;">
+                    <tr>
+                        <td><strong>Ventas Totales</strong></td>
+                        <td style="text-align: right;" id="fin-ventas-detalle">$0</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Costo Ingredientes</strong></td>
+                        <td style="text-align: right; color: var(--danger);" id="fin-costos-ingrediente">$0</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Costo Envases (Bolsas + Stickers)</strong></td>
+                        <td style="text-align: right; color: var(--secondary);" id="fin-costos-envases">$0</td>
+                    </tr>
+                    <tr style="background: #f0f9f0; font-weight: bold;">
+                        <td><strong>Ganancia Neta</strong></td>
+                        <td style="text-align: right; color: var(--primary);" id="fin-ganancia-neta">$0</td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- SECCIÓN DE REINICIO (NUEVA) -->
+            <div class="form-container reset-section">
+                <div style="text-align: center;">
+                    <i class="fas fa-exclamation-triangle warning-icon"></i>
+                    <h3><i class="fas fa-trash-alt"></i> Zona de Peligro</h3>
+                    <p>Esta acción eliminará TODOS los datos: ventas, recetas, inventario y envases. No se puede deshacer.</p>
+                    <button onclick="reiniciarSistema()" class="btn-reset">
+                        <i class="fas fa-sync-alt"></i> REINICIAR TODO EL SISTEMA
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Contenedor de Notificaciones -->
+    <div id="toast-container"></div>
+
+    <script>
+        // --- ESTADO DE LA APLICACIÓN ---
+        let inventario = JSON.parse(localStorage.getItem('ensaladas_inventario')) || [];
+        let recetas = JSON.parse(localStorage.getItem('ensaladas_recetas')) || [];
+        let ventas = JSON.parse(localStorage.getItem('ensaladas_ventas')) || [];
+        let envases = JSON.parse(localStorage.getItem('ensaladas_envases')) || {
+            bolsas: { cantidad: 0, precioTotal: 0, costoUnitario: 0 },
+            stickers: { cantidad: 0, precioTotal: 0, costoUnitario: 0 }
+        };
+        let ingredientesTempReceta = [];
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            actualizarSelects();
+            renderInventario();
+            renderRecetas();
+            renderVentas();
+            actualizarDashboard();
+            actualizarEnvasesUI();
+            document.getElementById('venta-fecha').valueAsDate = new Date();
+
+            const inputsCompra = ['ingrediente-unidad', 'ingrediente-cantidad', 'ingrediente-precio-unitario'];
+            inputsCompra.forEach(id => {
+                const el = document.getElementById(id);
+                if(el) el.addEventListener('input', calcularGastoTotalFormulario);
+            });
+        });
+
+        // --- SISTEMA DE NOTIFICACIONES (TOAST) ---
+        function showNotification(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = 'check-circle';
+            if(type === 'error') icon = 'exclamation-circle';
+            if(type === 'warning') icon = 'exclamation-triangle';
+            if(type === 'info') icon = 'info-circle';
+
+            toast.innerHTML = `
+                <i class="fas fa-${icon}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // --- NAVEGACIÓN ---
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(sec => {
+                sec.classList.remove('active');
+            });
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            const targetSection = document.getElementById(sectionId);
+            if(targetSection) {
+                targetSection.classList.add('active');
+            }
+
+            const activeBtn = document.querySelector(`.nav-btn[onclick="showSection('${sectionId}')"]`);
+            if(activeBtn) {
+                activeBtn.classList.add('active');
+            }
+
+            if(sectionId === 'dashboard') actualizarDashboard();
+            if(sectionId === 'finanzas') actualizarFinanzas();
+            if(sectionId === 'envases') actualizarEnvasesUI();
+        }
+
+        // --- UTILIDADES ---
+        function guardarDatos() {
+            localStorage.setItem('ensaladas_inventario', JSON.stringify(inventario));
+            localStorage.setItem('ensaladas_recetas', JSON.stringify(recetas));
+            localStorage.setItem('ensaladas_ventas', JSON.stringify(ventas));
+            localStorage.setItem('ensaladas_envases', JSON.stringify(envases));
+            actualizarSelects();
+        }
+
+        function formatMoney(amount) {
+            return '$' + parseFloat(amount).toFixed(2);
+        }
+
+        function getCostoEmpaqueTotal() {
+            return envases.bolsas.costoUnitario + envases.stickers.costoUnitario;
+        }
+
+        // --- FUNCIÓN DE REINICIO (NUEVA) ---
+        function reiniciarSistema() {
+            const confirmacion = confirm('⚠️ ¿ESTÁS SEGURO QUE QUERÉS BORRAR TODO? ⚠️\n\nEsto eliminará:\n- Todas las ventas\n- Todas las recetas\n- Todo el inventario\n- Todos los envases\n\nNO SE PUEDE DESHACER. ¿Continuar?');
+            
+            if (confirmacion) {
+                const confirmacion2 = confirm('¿Última oportunidad! ¿Realmente querés borrar todo?');
+                if (confirmacion2) {
+                    // Borrar todo del localStorage
+                    localStorage.removeItem('ensaladas_inventario');
+                    localStorage.removeItem('ensaladas_recetas');
+                    localStorage.removeItem('ensaladas_ventas');
+                    localStorage.removeItem('ensaladas_envases');
+                    
+                    // Resetear variables
+                    inventario = [];
+                    recetas = [];
+                    ventas = [];
+                    envases = {
+                        bolsas: { cantidad: 0, precioTotal: 0, costoUnitario: 0 },
+                        stickers: { cantidad: 0, precioTotal: 0, costoUnitario: 0 }
+                    };
+                    
+                    showNotification('Sistema reiniciado correctamente', 'success');
+                    
+                    // Recargar la página
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                }
+            }
+        }
+
+        function actualizarSelects() {
+            const mermaSelect = document.getElementById('merma-select');
+            if(mermaSelect) {
+                mermaSelect.innerHTML = '<option value="">Seleccione...</option>';
+                inventario.forEach((item, index) => {
+                    mermaSelect.innerHTML += `<option value="${index}">${item.nombre} (${item.cantidad} ${item.unidad})</option>`;
+                });
+            }
+
+            const recSelect = document.getElementById('receta-ingrediente');
+            if(recSelect) {
+                recSelect.innerHTML = '<option value="">Seleccione Ingrediente...</option>';
+                inventario.forEach((item, index) => {
+                    recSelect.innerHTML += `<option value="${index}" data-unidad="${item.unidad}">${item.nombre}</option>`;
+                });
+            }
+
+            const ventaSelect = document.getElementById('venta-receta-select');
+            if(ventaSelect) {
+                ventaSelect.innerHTML = '<option value="">Seleccione Ensalada...</option>';
+                recetas.forEach((rec, index) => {
+                    ventaSelect.innerHTML += `<option value="${index}">${rec.nombre} - ${formatMoney(rec.precioVenta)}</option>`;
+                });
+            }
+        }
+
+        // --- LÓGICA DE INVENTARIO ---
+        function calcularGastoTotalFormulario() {
+            const cantidad = parseFloat(document.getElementById('ingrediente-cantidad').value) || 0;
+            const precio = parseFloat(document.getElementById('ingrediente-precio-unitario').value) || 0;
+            const total = cantidad * precio;
+            document.getElementById('ingrediente-gasto-total').value = formatMoney(total);
+            return total;
+        }
+
+        document.getElementById('form-compra').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('ingrediente-nombre').value.trim();
+            const cantidad = parseFloat(document.getElementById('ingrediente-cantidad').value);
+            const unidad = document.getElementById('ingrediente-unidad').value;
+            const precioUnitario = parseFloat(document.getElementById('ingrediente-precio-unitario').value);
+
+            const index = inventario.findIndex(i => i.nombre.toLowerCase() === nombre.toLowerCase() && i.unidad === unidad);
+            
+            if (index !== -1) {
+                const item = inventario[index];
+                const valorActualStock = item.cantidad * item.precioUnitario;
+                const valorNuevaCompra = cantidad * precioUnitario;
+                const nuevaCantidad = item.cantidad + cantidad;
+                const nuevoValorTotal = valorActualStock + valorNuevaCompra;
+                
+                item.cantidad = nuevaCantidad;
+                item.precioUnitario = nuevoValorTotal / nuevaCantidad;
+            } else {
+                inventario.push({
+                    nombre: nombre,
+                    unidad: unidad,
+                    cantidad: cantidad,
+                    precioUnitario: precioUnitario
+                });
+            }
+
+            guardarDatos();
+            renderInventario();
+            e.target.reset();
+            document.getElementById('ingrediente-gasto-total').value = '';
+            document.getElementById('label-unidad-precio').innerText = 'kg';
+            showNotification('Ingrediente agregado correctamente', 'success');
+        });
+
+        function borrarIngrediente(index) {
+            if(confirm('¿Eliminar "' + inventario[index].nombre + '"?')) {
+                inventario.splice(index, 1);
+                guardarDatos();
+                renderInventario();
+                showNotification('Ingrediente eliminado', 'warning');
+            }
+        }
+
+        document.getElementById('form-merma').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const index = document.getElementById('merma-select').value;
+            const cantidad = parseFloat(document.getElementById('merma-cantidad').value);
+
+            if (index === "") return showNotification("Seleccione ingrediente", 'error');
+
+            if (inventario[index].cantidad >= cantidad) {
+                inventario[index].cantidad -= cantidad;
+                if(inventario[index].cantidad < 0) inventario[index].cantidad = 0;
+                guardarDatos();
+                renderInventario();
+                e.target.reset();
+                showNotification('Merma registrada', 'warning');
+            } else {
+                showNotification('Stock insuficiente', 'error');
+            }
+        });
+
+        function renderInventario() {
+            const tbody = document.querySelector('#tabla-inventario tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            inventario.forEach((item, index) => {
+                let estado = item.cantidad > 5 ? '<span class="badge badge-success">OK</span>' : '<span class="badge badge-warning">Bajo</span>';
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${item.nombre}</strong></td>
+                        <td>${item.cantidad.toFixed(2)} <small>${item.unidad}</small></td>
+                        <td>${formatMoney(item.precioUnitario)} / ${item.unidad}</td>
+                        <td>${estado}</td>
+                        <td>
+                            <button class="btn-danger" onclick="borrarIngrediente(${index})"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- LÓGICA DE ENVASES ---
+        function actualizarEnvasesUI() {
+            document.getElementById('bolsas-costo-unitario').innerText = formatMoney(envases.bolsas.costoUnitario);
+            document.getElementById('bolsas-stock').innerText = envases.bolsas.cantidad;
+
+            document.getElementById('stickers-costo-unitario').innerText = formatMoney(envases.stickers.costoUnitario);
+            document.getElementById('stickers-stock').innerText = envases.stickers.cantidad;
+
+            const totalEmpaque = getCostoEmpaqueTotal();
+            document.getElementById('empaque-total-unitario').innerText = formatMoney(totalEmpaque);
+        }
+
+        document.getElementById('form-bolsas').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const cantidad = parseFloat(document.getElementById('bolsas-cantidad').value);
+            const precioTotal = parseFloat(document.getElementById('bolsas-precio-total').value);
+
+            const nuevoStock = envases.bolsas.cantidad + cantidad;
+            const nuevoValorTotal = (envases.bolsas.cantidad * envases.bolsas.costoUnitario) + precioTotal;
+            
+            envases.bolsas.cantidad = nuevoStock;
+            envases.bolsas.costoUnitario = nuevoValorTotal / nuevoStock;
+            envases.bolsas.precioTotal = nuevoValorTotal;
+
+            guardarDatos();
+            actualizarEnvasesUI();
+            e.target.reset();
+            showNotification('Bolsas actualizadas correctamente', 'success');
+        });
+
+        document.getElementById('form-stickers').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const cantidad = parseFloat(document.getElementById('stickers-cantidad').value);
+            const precioTotal = parseFloat(document.getElementById('stickers-precio-total').value);
+
+            const nuevoStock = envases.stickers.cantidad + cantidad;
+            const nuevoValorTotal = (envases.stickers.cantidad * envases.stickers.costoUnitario) + precioTotal;
+            
+            envases.stickers.cantidad = nuevoStock;
+            envases.stickers.costoUnitario = nuevoValorTotal / nuevoStock;
+            envases.stickers.precioTotal = nuevoValorTotal;
+
+            guardarDatos();
+            actualizarEnvasesUI();
+            e.target.reset();
+            showNotification('Stickers actualizados correctamente', 'success');
+        });
+
+        // --- LÓGICA DE RECETAS ---
+        function agregarIngredienteReceta() {
+            const selectIng = document.getElementById('receta-ingrediente');
+            const index = selectIng.value;
+            const cantidadInput = parseFloat(document.getElementById('receta-cantidad').value);
+            const unidadUso = document.getElementById('receta-unidad-uso').value;
+
+            if (index === "" || isNaN(cantidadInput)) return showNotification("Complete los campos", 'error');
+
+            const item = inventario[index];
+            const unidadBase = item.unidad;
+            
+            let cantidadEnBase = cantidadInput;
+            let unidadMostrada = unidadUso;
+
+            if (unidadBase === 'kg' && unidadUso === 'gr') {
+                cantidadEnBase = cantidadInput / 1000;
+            } else if (unidadBase === 'gr' && unidadUso === 'kg') {
+                cantidadEnBase = cantidadInput * 1000;
+            } else if (unidadBase !== unidadUso) {
+                cantidadEnBase = cantidadInput; 
+                unidadMostrada = unidadBase;
+                showNotification(`Nota: Se usó la unidad base del inventario (${unidadBase})`, 'warning');
+            }
+
+            const costo = item.precioUnitario * cantidadEnBase;
+
+            ingredientesTempReceta.push({
+                nombre: item.nombre,
+                cantidad: cantidadInput,
+                unidad: unidadMostrada,
+                costo: costo
+            });
+
+            const li = document.createElement('li');
+            li.style.padding = "10px";
+            li.style.background = "#fff";
+            li.style.marginBottom = "5px";
+            li.style.borderRadius = "8px";
+            li.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
+            li.style.display = "flex";
+            li.style.justifyContent = "space-between";
+            li.innerHTML = `<span>${item.nombre}: <strong>${cantidadInput} ${unidadMostrada}</strong></span> <span style="color:var(--primary)">${formatMoney(costo)}</span>`;
+            
+            document.getElementById('lista-ingredientes-temp').appendChild(li);
+            calcularPrecioVenta();
+        }
+
+        function calcularPrecioVenta() {
+            const costoIngredientes = ingredientesTempReceta.reduce((sum, item) => sum + item.costo, 0);
+            const costoEmpaque = getCostoEmpaqueTotal();
+            const costoTotal = costoIngredientes + costoEmpaque;
+            const margen = parseFloat(document.getElementById('receta-margen').value) || 0;
+            
+            document.getElementById('receta-costo').value = formatMoney(costoIngredientes);
+            document.getElementById('receta-costo-empaque').value = formatMoney(costoEmpaque);
+            
+            const precioVenta = costoTotal * (1 + (margen / 100));
+            document.getElementById('receta-precio-venta').value = formatMoney(precioVenta);
+            return { costoIngredientes, costoEmpaque, costoTotal, precioVenta };
+        }
+
+        document.getElementById('form-receta').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('receta-nombre').value;
+            const precios = calcularPrecioVenta();
+
+            if (ingredientesTempReceta.length === 0) return showNotification("Agregue ingredientes", 'error');
+
+            recetas.push({
+                nombre: nombre,
+                ingredientes: [...ingredientesTempReceta], 
+                costoIngredientes: precios.costoIngredientes,
+                costoEmpaque: precios.costoEmpaque,
+                costoTotal: precios.costoTotal,
+                precioVenta: precios.precioVenta
+            });
+
+            guardarDatos();
+            renderRecetas();
+            e.target.reset();
+            ingredientesTempReceta = [];
+            document.getElementById('lista-ingredientes-temp').innerHTML = '';
+            document.getElementById('receta-costo').value = '';
+            document.getElementById('receta-costo-empaque').value = '';
+            document.getElementById('receta-precio-venta').value = '';
+            showNotification('Receta guardada exitosamente', 'success');
+        });
+
+        function renderRecetas() {
+            const tbody = document.querySelector('#tabla-recetas tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            recetas.forEach((rec, index) => {
+                const ingStr = rec.ingredientes.map(i => `${i.nombre} (${i.cantidad} ${i.unidad})`).join(', ');
+                tbody.innerHTML += `
+                    <tr>
+                        <td><strong>${rec.nombre}</strong></td>
+                        <td style="font-size:0.85rem; color:#666; max-width: 300px;">${ingStr}</td>
+                        <td>
+                            ${formatMoney(rec.costoTotal)}
+                            <br><small style="color:#888;">(Ingr: ${formatMoney(rec.costoIngredientes)} + Emp: ${formatMoney(rec.costoEmpaque)})</small>
+                        </td>
+                        <td style="font-weight:bold; color:var(--primary);">${formatMoney(rec.precioVenta)}</td>
+                        <td><button class="btn-danger" onclick="borrarReceta(${index})"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                `;
+            });
+        }
+
+        function borrarReceta(index) {
+            if(confirm('¿Borrar receta?')) {
+                recetas.splice(index, 1);
+                guardarDatos();
+                renderRecetas();
+                showNotification('Receta eliminada', 'warning');
+            }
+        }
+
+        // --- LÓGICA DE VENTAS ---
+        function registrarVenta() {
+            const fecha = document.getElementById('venta-fecha').value;
+            const recIndex = document.getElementById('venta-receta-select').value;
+            const cantidad = parseFloat(document.getElementById('venta-cantidad').value);
+
+            if (recIndex === "" || !fecha) return showNotification("Complete los campos", 'error');
+
+            const receta = recetas[recIndex];
+            const totalVenta = receta.precioVenta * cantidad;
+
+            if (envases.bolsas.cantidad < cantidad) {
+                showNotification('¡Atención! Stock de bolsas bajo', 'warning');
+            }
+            if (envases.stickers.cantidad < cantidad) {
+                showNotification('¡Atención! Stock de stickers bajo', 'warning');
+            }
+            
+            envases.bolsas.cantidad = Math.max(0, envases.bolsas.cantidad - cantidad);
+            envases.stickers.cantidad = Math.max(0, envases.stickers.cantidad - cantidad);
+
+            ventas.push({
+                id: Date.now(),
+                fecha: fecha,
+                nombreReceta: receta.nombre,
+                cantidad: cantidad,
+                total: totalVenta,
+                costoIngredientes: receta.costoIngredientes * cantidad,
+                costoEmpaque: receta.costoEmpaque * cantidad,
+                costoTotal: receta.costoTotal * cantidad
+            });
+
+            guardarDatos();
+            renderVentas();
+            actualizarEnvasesUI();
+            showNotification('¡Venta registrada!', 'success');
+        }
+
+        function renderVentas() {
+            const tbody = document.querySelector('#tabla-ventas-historial tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            const ventasOrdenadas = [...ventas].sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+
+            ventasOrdenadas.forEach(v => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${v.fecha}</td>
+                        <td>${v.nombreReceta}</td>
+                        <td>${v.cantidad}</td>
+                        <td style="color:var(--primary); font-weight:bold;">${formatMoney(v.total)}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // --- DASHBOARD Y FINANZAS ---
+        function actualizarDashboard() {
+            const totalVentas = ventas.reduce((sum, v) => sum + v.total, 0);
+            const totalCostos = ventas.reduce((sum, v) => sum + (v.costoTotal || v.costoAsociado), 0);
+            const gananciaNeta = totalVentas - totalCostos;
+            const stockBajo = inventario.filter(i => i.cantidad < 2).length;
+
+            document.getElementById('dash-ventas').innerText = formatMoney(totalVentas);
+            document.getElementById('dash-gastos').innerText = formatMoney(totalCostos); 
+            document.getElementById('dash-ganancia').innerText = formatMoney(gananciaNeta);
+            document.getElementById('dash-alertas').innerText = stockBajo;
+
+            const tbody = document.querySelector('#tabla-ultimas-ventas tbody');
+            if(tbody) {
+                tbody.innerHTML = '';
+                ventas.slice(-5).reverse().forEach(v => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${v.fecha}</td>
+                            <td>${v.nombreReceta}</td>
+                            <td>${v.cantidad}</td>
+                            <td>${formatMoney(v.total)}</td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function actualizarFinanzas() {
+            const ingresos = ventas.reduce((sum, v) => sum + v.total, 0);
+            const costosIngredientes = ventas.reduce((sum, v) => sum + (v.costoIngredientes || 0), 0);
+            const costosEnvases = ventas.reduce((sum, v) => sum + (v.costoEmpaque || 0), 0);
+            const costosTotales = costosIngredientes + costosEnvases;
+            const saldo = ingresos - costosTotales;
+
+            document.getElementById('fin-ingresos').innerText = formatMoney(ingresos);
+            document.getElementById('fin-egresos').innerText = formatMoney(costosTotales);
+            document.getElementById('fin-saldo').innerText = formatMoney(saldo);
+
+            document.getElementById('fin-ventas-detalle').innerText = formatMoney(ingresos);
+            document.getElementById('fin-costos-ingrediente').innerText = formatMoney(costosIngredientes);
+            document.getElementById('fin-costos-envases').innerText = formatMoney(costosEnvases);
+            document.getElementById('fin-ganancia-neta').innerText = formatMoney(saldo);
+        }
+
+    </script>
+</body>
+</html>
